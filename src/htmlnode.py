@@ -38,6 +38,28 @@ class HTMLNode:
         return representation_str + ")"
 
 
+class ParentNode(HTMLNode):
+    def __init__(
+        self,
+        tag: str,
+        children: list[HTMLNode | LeafNode],
+        props: dict[str, str | dict] | None = None,
+    ) -> None:
+        super().__init__(tag=tag, children=children, props=props)
+
+    def to_html(self):
+        if self.tag == None:
+            raise ValueError("A ParentNode must have a tag.")
+        if not self.children:
+            raise ValueError("A ParentNode must contain children.")
+
+        children_html = ""
+        for child in self.children:
+            children_html += child.to_html()
+
+        return f"<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>"
+
+
 class LeafNode(HTMLNode):
     def __init__(
         self,
@@ -45,9 +67,7 @@ class LeafNode(HTMLNode):
         value: str | None = None,
         props: dict[str, str | dict] | None = None,
     ):
-        self.tag = tag
-        self.value = value
-        self.props = props
+        super().__init__(tag=tag, value=value, props=props)
 
     def to_html(self):
 

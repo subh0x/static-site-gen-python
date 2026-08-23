@@ -1,4 +1,4 @@
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode, TextType
 
 
@@ -20,7 +20,19 @@ def main():
     )
     print(leaf_node_2.to_html())
     leaf_node_1 = LeafNode("a", props={"href": "https://boot.dev", "target": "_blank"})
-    print(leaf_node_1.to_html())
+    # print(leaf_node_1.to_html())
+    print(LeafNode("p", "This is a paragraph of text.").to_html())
+
+    parent_node = ParentNode(
+        "p",
+        [
+            LeafNode("b", "Bold text"),
+            LeafNode(None, "Normal text"),
+            LeafNode("i", "italic text"),
+            LeafNode(None, "Normal text"),
+        ],
+    )
+    print(parent_node.to_html())
 
 
 main()
