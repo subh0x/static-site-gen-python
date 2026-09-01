@@ -1,6 +1,12 @@
 import unittest
-from split_nodes_delimiter import split_nodes_delimiter
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import (
+    TextNode,
+    TextType,
+    split_nodes_link,
+    text_node_to_html_node,
+    split_nodes_delimiter,
+    split_nodes_image,
+)
 
 
 class TestTextNode(unittest.TestCase):
@@ -152,6 +158,202 @@ class TestSplitNodeCmd(unittest.TestCase):
                 TextNode("This is text with a ", TextType.TEXT),
                 TextNode("code block", TextType.CODE),
                 TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+
+class TestSplitNodesImage(unittest.TestCase):
+    def test_single_image_middle(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and more",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and more", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_multiple_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) "
+            "and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_image_at_start_no_leading_text(self):
+        node = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png) leading only", TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" leading only", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_image_at_end_no_trailing_text(self):
+        node = TextNode(
+            "trailing only ![image](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("trailing only ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_only_image_no_surrounding_text(self):
+        node = TextNode("![image](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")],
+            new_nodes,
+        )
+
+    def test_no_images_returns_node_unchanged(self):
+        node = TextNode("This text has no images at all", TextType.TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([node], new_nodes)
+
+    def test_non_text_node_passthrough(self):
+        node = TextNode("bolded text", TextType.BOLD)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([node], new_nodes)
+
+    def test_multiple_old_nodes_mixed(self):
+        text_node = TextNode(
+            "before ![image](https://i.imgur.com/zjjcJKZ.png) after", TextType.TEXT
+        )
+        bold_node = TextNode("bold text", TextType.BOLD)
+        plain_node = TextNode("plain text", TextType.TEXT)
+        new_nodes = split_nodes_image([text_node, bold_node, plain_node])
+        self.assertListEqual(
+            [
+                TextNode("before ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" after", TextType.TEXT),
+                TextNode("bold text", TextType.BOLD),
+                TextNode("plain text", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+
+class TestSplitNodesLink(unittest.TestCase):
+    def test_single_link_middle(self):
+        node = TextNode(
+            "This is text with an [link](https://i.imgur.com/zjjcJKZ.png) and more",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and more", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_multiple_links(self):
+        node = TextNode(
+            "This is text with an [link](https://i.imgur.com/zjjcJKZ.png) "
+            "and another [second link](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second link", TextType.LINK, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_link_at_start_no_leading_text(self):
+        node = TextNode(
+            "[link](https://i.imgur.com/zjjcJKZ.png) leading only", TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" leading only", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_link_at_end_no_trailing_text(self):
+        node = TextNode(
+            "trailing only [link](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("trailing only ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_only_link_no_surrounding_text(self):
+        node = TextNode("[link](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png")],
+            new_nodes,
+        )
+
+    def test_no_links_returns_node_unchanged(self):
+        node = TextNode("This text has no links at all", TextType.TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([node], new_nodes)
+
+    def test_non_text_node_passthrough(self):
+        node = TextNode("bolded text", TextType.BOLD)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([node], new_nodes)
+
+    def test_multiple_old_nodes_mixed(self):
+        text_node = TextNode(
+            "before [link](https://i.imgur.com/zjjcJKZ.png) after", TextType.TEXT
+        )
+        bold_node = TextNode("bold text", TextType.BOLD)
+        plain_node = TextNode("plain text", TextType.TEXT)
+        new_nodes = split_nodes_link([text_node, bold_node, plain_node])
+        self.assertListEqual(
+            [
+                TextNode("before ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" after", TextType.TEXT),
+                TextNode("bold text", TextType.BOLD),
+                TextNode("plain text", TextType.TEXT),
             ],
             new_nodes,
         )

@@ -1,6 +1,12 @@
+from extract_markdown_utils import extract_markdown_images, extract_markdown_links
 from htmlnode import HTMLNode, LeafNode, ParentNode
-from split_nodes_delimiter import split_nodes_delimiter
-from textnode import TextNode, TextType
+from textnode import (
+    TextNode,
+    TextType,
+    split_nodes_delimiter,
+    split_nodes_image,
+    split_nodes_link,
+)
 
 
 def main():
@@ -35,10 +41,28 @@ def main():
     )
     # print(parent_node.to_html())
 
-    node = TextNode("This is text with a `code block` word `./main.py`", TextType.TEXT)
-    node2 = TextNode("main.py", TextType.CODE)
-    new_nodes = split_nodes_delimiter([node, node2], "`", TextType.CODE)
-    print(new_nodes)
+    # Split Nodes Function:
+    # node = TextNode("This is text with a `code block` word `./main.py`", TextType.TEXT)
+    # node2 = TextNode("main.py", TextType.CODE)
+    # new_nodes = split_nodes_delimiter([node, node2], "`", TextType.CODE)
+    # print(new_nodes)
+
+    #  Extract Markdown Images Function:
+    text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+    # print(extract_markdown_images(text))
+
+    link_text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+    # print(extract_markdown_links(link_text))
+
+    img_text_split = TextNode(
+        "text ![image](url.com) trailing text ![image2](url1.com) ", TextType.TEXT
+    )
+    # print(split_nodes_image([img_text_split]))
+
+    link_text_split = TextNode(
+        "text [image](url.com) trailing text [image2](url1.com) ", TextType.TEXT
+    )
+    print(split_nodes_link([img_text_split, link_text_split]))
 
 
 main()

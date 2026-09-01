@@ -1,4 +1,5 @@
 import unittest
+from extract_markdown_utils import extract_markdown_images, extract_markdown_links
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
 
@@ -54,4 +55,39 @@ class TestParentNode(unittest.TestCase):
         self.assertEqual(
             parent_node.to_html(),
             "<div><span><b>grandchild</b></span></div>",
+        )
+
+
+class TestMarkdownExtractionUtils(unittest.TestCase):
+    def test_extract_markdown_links(self):
+        text = "This is text with a [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            [("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")],
+            extract_markdown_links(text),
+        )
+
+    def test_extract_markdown_links_containing_imgs(self):
+        text = "This is text with a ![padawan](https://i.imgur.com/fJRm4Vk.jpeg) [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            [("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")],
+            extract_markdown_links(text),
+        )
+
+    def test_extract_markdown_img(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            [
+                ("rick roll", "https://i.imgur.com/aKaOqIh.gif"),
+                ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg"),
+            ],
+            extract_markdown_images(text),
+        )
+
+    def test_extract_markdown_img_containing_links(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            [
+                ("rick roll", "https://i.imgur.com/aKaOqIh.gif"),
+            ],
+            extract_markdown_images(text),
         )
