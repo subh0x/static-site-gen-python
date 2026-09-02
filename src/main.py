@@ -6,6 +6,7 @@ from textnode import (
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 
 
@@ -62,7 +63,10 @@ def main():
     link_text_split = TextNode(
         "text [image](url.com) trailing text [image2](url1.com) ", TextType.TEXT
     )
-    print(split_nodes_link([img_text_split, link_text_split]))
+    # print(split_nodes_link([img_text_split, link_text_split]))
+
+    compound_text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+    print(text_to_textnodes(compound_text))
 
 
 main()

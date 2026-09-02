@@ -65,6 +65,7 @@ def split_nodes_delimiter(
     for node in old_nodes:
         if node.text_type == TextType.TEXT:
             # Check if the delimeter exists in the Given Node:
+            # print(node.text, "\n")
             if node.text.find(delimiter) != -1:
                 node_split_text_list = node.text.split(delimiter)
                 # print(node_split_text_list)
@@ -77,9 +78,10 @@ def split_nodes_delimiter(
                         output_nodes.append(TextNode(split_text, TextType.TEXT))
 
             else:
-                raise ValueError(
-                    f"The given Node does not contain the given text_type: {text_type} TextNode."
-                )
+                output_nodes.append(TextNode(node.text, TextType.TEXT))
+                # raise ValueError(
+                #     f"The given Node does not contain the given text_type: {text_type} TextNode."
+                # )
         else:
             output_nodes.append(node)
 
@@ -165,3 +167,19 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(node)
 
     return new_nodes
+
+
+def text_to_textnodes(text: str) -> list[TextNode]:
+    nodes_list = []
+    nodes_list = [TextNode(text, TextType.TEXT)]
+    # Split Nodes if it contains code
+    nodes_list = split_nodes_delimiter(nodes_list, "`", TextType.CODE)
+    # Split Nodes if it contains bold text
+    nodes_list = split_nodes_delimiter(nodes_list, "**", TextType.BOLD)
+    # Split Nodes if it contains italic text
+    nodes_list = split_nodes_delimiter(nodes_list, "_", TextType.ITALIC)
+    # Split Nodes if it contains images
+    nodes_list = split_nodes_image(nodes_list)
+    # Split Nodes if it contains links
+    nodes_list = split_nodes_link(nodes_list)
+    return nodes_list

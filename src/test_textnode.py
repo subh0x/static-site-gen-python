@@ -6,6 +6,7 @@ from textnode import (
     text_node_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
+    text_to_textnodes,
 )
 
 
@@ -356,6 +357,41 @@ class TestSplitNodesLink(unittest.TestCase):
                 TextNode("plain text", TextType.TEXT),
             ],
             new_nodes,
+        )
+
+
+class TestSplitTextIntoTextNodes(unittest.TestCase):
+    def test_text_with_all_types(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        self.assertEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            text_to_textnodes(text),
+        )
+
+    def test_text_with_multiple_bold_types(self):
+        text = "This is **text** with a **bold2** word."
+        self.assertEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with a ", TextType.TEXT),
+                TextNode("bold2", TextType.BOLD),
+                TextNode(" word.", TextType.TEXT),
+            ],
+            text_to_textnodes(text),
         )
 
 
